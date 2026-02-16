@@ -1,47 +1,58 @@
 import 'package:flutter/material.dart';
-import 'firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// ใช้สร้างหน้าจอ ปุ่ม กล่องข้อความ ต่าง ๆ ในแอป
 
-/// =======================
-/// ฟังก์ชันเริ่มต้นแอป
-/// =======================
+import 'firebase_options.dart';
+// ไฟล์นี้เป็นไฟล์ตั้งค่าของ Firebase
+// บอกว่าแอปนี้จะไปใช้ Firebase โปรเจกต์ไหน
+
+import 'package:firebase_core/firebase_core.dart';
+// ใช้เปิดการใช้งาน Firebase
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+// ใช้ติดต่อกับ Firestore (ฐานข้อมูลของ Firebase)
+
+
+// =======================
+// จุดเริ่มต้นของแอป
+// =======================
 void main() async {
-  // ผูก Flutter กับ engine (จำเป็นก่อนใช้ async)
+
+  // บอก Flutter ว่าเราจะใช้คำสั่ง async
   WidgetsFlutterBinding.ensureInitialized();
 
-  // เริ่มต้น Firebase
+  // เปิดการใช้งาน Firebase
+  // ถ้าไม่เขียนอันนี้ จะเพิ่ม / ดึงข้อมูลไม่ได้
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // เรียกแอปหลัก
+  // เปิดแอป
   runApp(const MyApp());
 }
 
-/// =======================
-/// Widget หลักของแอป
-/// =======================
+
+// =======================
+// ตัวแอปหลัก
+// =======================
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+
+    // MaterialApp คือโครงหลักของแอป
     return MaterialApp(
       title: 'Song App',
-      debugShowCheckedModeBanner: false, // เอาแถบ debug ออก
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      debugShowCheckedModeBanner: false,
       home: const MyHomePage(title: 'Song Management'),
     );
   }
 }
 
-/// =======================
-/// หน้าแรก (Stateful)
-/// =======================
+
+// =======================
+// หน้าแรกของแอป
+// =======================
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -51,58 +62,70 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-/// =======================
-/// State ของหน้าแรก
-/// =======================
+
+// =======================
+// ตัวควบคุมการทำงานของหน้าแรก
+// =======================
 class _MyHomePageState extends State<MyHomePage> {
-  // Controller สำหรับรับค่าจาก TextField
+
+  // Controller คือกล่องไว้เก็บค่าที่ผู้ใช้พิมพ์
+  // เช่น พิมพ์ชื่อเพลง → ค่าจะมาอยู่ตรงนี้
   final TextEditingController _songNameCtrl = TextEditingController();
   final TextEditingController _artistCtrl = TextEditingController();
   final TextEditingController _songTypeCtrl = TextEditingController();
 
-  /// =======================
-  /// ฟังก์ชันเพิ่มข้อมูลเพลง
-  /// =======================
+
+  // =======================
+  // ฟังก์ชันเพิ่มข้อมูลเพลง
+  // =======================
   void addSong() async {
-    // ดึงค่าจากช่องกรอก
+
+    // เอาข้อมูลที่ผู้ใช้พิมพ์ออกมาจาก TextField
     String songName = _songNameCtrl.text;
     String artist = _artistCtrl.text;
     String songType = _songTypeCtrl.text;
 
     try {
-      // บันทึกข้อมูลลง Firestore
-      await FirebaseFirestore.instance.collection("songs").add({
+      // เอาข้อมูลไปเก็บใน Firebase Firestore
+      // songs = ชื่อที่เก็บข้อมูล (collection)
+      await FirebaseFirestore.instance
+          .collection("songs")
+          .add({
         "songName": songName,
         "artist": artist,
         "songType": songType,
       });
 
-      // ล้างช่องกรอกหลังบันทึกเสร็จ
+      // พอเพิ่มเสร็จ ล้างช่องกรอกให้ว่าง
       _songNameCtrl.clear();
       _artistCtrl.clear();
       _songTypeCtrl.clear();
+
     } catch (e) {
-      // แสดง error กรณีบันทึกไม่สำเร็จ
+      // ถ้าเพิ่มข้อมูลไม่ได้
       print("เกิดข้อผิดพลาด: $e");
     }
   }
 
-  /// =======================
-  /// ส่วน UI หลัก
-  /// =======================
+
+  // =======================
+  // ส่วนแสดงหน้าจอ
+  // =======================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       appBar: AppBar(
         title: Text(widget.title),
         centerTitle: true,
       ),
 
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            /// ===== ช่องกรอกชื่อเพลง =====
+
+            // ช่องพิมพ์ชื่อเพลง
             TextField(
               controller: _songNameCtrl,
               decoration: const InputDecoration(
@@ -110,9 +133,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 border: OutlineInputBorder(),
               ),
             ),
+
             const SizedBox(height: 10),
 
-            /// ===== ช่องกรอกศิลปิน =====
+            // ช่องพิมพ์ชื่อศิลปิน
             TextField(
               controller: _artistCtrl,
               decoration: const InputDecoration(
@@ -120,9 +144,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 border: OutlineInputBorder(),
               ),
             ),
+
             const SizedBox(height: 10),
 
-            /// ===== ช่องกรอกประเภทเพลง =====
+            // ช่องพิมพ์ประเภทเพลง
             TextField(
               controller: _songTypeCtrl,
               decoration: const InputDecoration(
@@ -130,25 +155,32 @@ class _MyHomePageState extends State<MyHomePage> {
                 border: OutlineInputBorder(),
               ),
             ),
+
             const SizedBox(height: 15),
 
-            /// ===== ปุ่มเพิ่มเพลง =====
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: addSong,
-                child: const Text("เพิ่มเพลง"),
-              ),
+            // ปุ่มเพิ่มเพลง
+            ElevatedButton(
+              onPressed: addSong, // กดแล้วเรียกฟังก์ชัน addSong
+              child: const Text("เพิ่มเพลง"),
             ),
+
             const SizedBox(height: 15),
 
-            /// ===== แสดงรายการเพลงจาก Firestore =====
+
+            // =======================
+            // ดึงข้อมูลจาก Firebase มาแสดง
+            // =======================
             Expanded(
               child: StreamBuilder(
+
+                // snapshots() คือดึงข้อมูลแบบสด
+                // เพิ่มข้อมูลใหม่ → หน้าจอเปลี่ยนทันที
                 stream: FirebaseFirestore.instance
                     .collection("songs")
                     .snapshots(),
+
                 builder: (context, snapshot) {
+
                   // ระหว่างโหลดข้อมูล
                   if (snapshot.connectionState ==
                       ConnectionState.waiting) {
@@ -157,17 +189,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   }
 
-                  // ถ้ามี error
+                  // ถ้าเกิดปัญหา
                   if (snapshot.hasError) {
                     return Center(
                       child: Text(snapshot.error.toString()),
                     );
                   }
 
-                  // ดึงเอกสารทั้งหมด
+                  // เอาข้อมูลทั้งหมดออกมาจาก Firebase
                   final docs = snapshot.data!.docs;
 
-                  // แสดงข้อมูลแบบ Grid
+                  // แสดงข้อมูลออกมาเป็นตาราง
                   return GridView.builder(
                     itemCount: docs.length,
                     gridDelegate:
@@ -177,27 +209,16 @@ class _MyHomePageState extends State<MyHomePage> {
                       mainAxisSpacing: 10,
                     ),
                     itemBuilder: (context, index) {
+
+                      // ข้อมูลเพลงแต่ละอัน
                       final song = docs[index].data();
 
-                      return InkWell(
-                        onTap: () {
-                          // ไปหน้ารายละเอียดเพลง
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  SongDetail(song: song),
-                            ),
-                          );
-                        },
-                        child: Card(
-                          elevation: 2,
-                          child: Center(
-                            child: Text(
-                              song["songName"],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      return Card(
+                        child: Center(
+                          child: Text(
+                            song["songName"], // แสดงชื่อเพลง
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -207,36 +228,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// =======================
-/// หน้ารายละเอียดเพลง
-/// =======================
-class SongDetail extends StatelessWidget {
-  final Map<String, dynamic> song;
-
-  const SongDetail({super.key, required this.song});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("รายละเอียดเพลง")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("ชื่อเพลง: ${song["songName"]}",
-                style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 8),
-            Text("ศิลปิน: ${song["artist"]}"),
-            const SizedBox(height: 8),
-            Text("ประเภทเพลง: ${song["songType"]}"),
           ],
         ),
       ),
